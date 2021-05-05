@@ -1,0 +1,188 @@
+package app.mainWindow.file;
+
+import app.mainWindow.MainWindow;
+import app.mainWindow.edit.TableEditInfo;
+
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
+
+
+public class FileManager {
+
+    private final MainWindow mainWindow;
+
+    private File currentFile = null;
+
+    private File loadedFile;
+
+
+    public FileManager(MainWindow mainWindow) {
+        this.mainWindow = mainWindow;
+    }
+
+    //zapisywanie jako, jesli zaden plik zapisu nie byl wybrany
+    public boolean saveAs(JTable table) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        int response = fileChooser.showSaveDialog(null);
+
+        if (response == JFileChooser.APPROVE_OPTION) {
+            currentFile = fileChooser.getSelectedFile();
+
+            if (!currentFile.getName().toLowerCase().endsWith(".txt")) {
+                JOptionPane.showMessageDialog(mainWindow.getFrame(), "Zapis mozliwy tylko do pliku .txt!");
+                currentFile = null;
+            }
+
+            return save(table);
+        }
+
+        return false;
+    }
+
+
+    //zapisywanie do wybranego wczesniej pliku
+    public boolean save(JTable table) {
+        if (currentFile == null) {
+            return saveAs(table);
+        }
+
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(
+                    new FileWriter(currentFile, false)
+            );
+
+            for (int i = 0; i < table.getRowCount(); i++) {
+                for (int j = 0; j < table.getColumnCount(); j++) {
+                    writer.write(table.getValueAt(i, j) + " ");
+                }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return false;
+
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+
+    public boolean load(JTable table) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("txt", "txt", "TXT");
+        fileChooser.setFileFilter(filter);
+
+        int response = fileChooser.showOpenDialog(null);
+
+        if (response == JFileChooser.APPROVE_OPTION) {
+            loadedFile = fileChooser.getSelectedFile();
+
+            if (!loadedFile.getName().toLowerCase().endsWith(".txt")) {
+                JOptionPane.showMessageDialog(mainWindow.getFrame(), "Odczyt mozliwy tylko z pliku .txt!");
+                return load(table);
+            }
+
+            return loadFromFile(table, loadedFile);
+        }
+        return false;
+    }
+
+    private boolean loadFromFile(JTable table, File file){
+        BufferedReader reader = null;
+
+        try {
+            reader = new BufferedReader(new FileReader(file));
+
+            String line;
+
+            int row = 0;
+
+            TableEditInfo[] editInfo = new TableEditInfo[table.getRowCount() * table.getColumnCount()];
+            int n = 0;
+
+            while ((line = reader.readLine()) != null) {
+                String[] elements = line.trim().split(" ");
+
+                if(elements.length < table.getColumnCount()){
+                    return false;
+                }
+
+                for (int column = 0; column < table.getColumnCount(); column++) {
+                    double doubleValue = Double.parseDouble(elements[column]);
+
+                    String value = elements[column];
+
+                    editInfo[n] = new TableEditInfo(table.getValueAt(row, column), value, row, column);
+                    table.setValueAt(value, row, column);
+
+                    n++;
+                }
+                row++;
+            }
+
+            if (row != table.getRowCount()) {
+                JOptionPane.showMessageDialog(mainWindow.getFrame(), "Bledne dane w pliku do odczytu");
+                return false;
+            }
+
+            mainWindow.getMainPanel().tableEditManager.push(editInfo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            JOptionPane.showMessageDialog(mainWindow.getFrame(), "Bledne dane w pliku do odczytu");
+
+            return false;
+
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return true;
+    }
+
+    public File getCurrentFile() {
+        return currentFile;
+    }
+
+    public File getLoadedFile() {
+        return loadedFile;
+    }
+}
