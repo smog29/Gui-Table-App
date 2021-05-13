@@ -1,13 +1,22 @@
 package app.mainWindow.mainPanel.bottom;
 
+import app.mainWindow.listModel.ListModel;
 import app.mainWindow.mainPanel.MainPanel;
 import graphics.IconLoader;
+
+import org.freixas.jcalendar.JCalendarCombo;
 import utils.Utils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.DateFormat;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +29,7 @@ public class BottomPanel extends JPanel {
     //East
     private JList<String> list;
     private JButton operationBtn;
+    private JCalendarCombo calendar;
     //South
     private JLabel infoLabel, statusLabel;
 
@@ -47,8 +57,6 @@ public class BottomPanel extends JPanel {
     }
 
 
-
-
     private JPanel createCentrePanel(){
         JPanel panel = new JPanel(new BorderLayout());
         TitledBorder title = BorderFactory.createTitledBorder("Uzyskany rezultat");
@@ -66,10 +74,10 @@ public class BottomPanel extends JPanel {
         return panel;
     }
 
+
     private JPanel createEastPanel(){
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-
 
         //List
         Map<String, Icon> map = new HashMap<>();
@@ -79,10 +87,11 @@ public class BottomPanel extends JPanel {
 
         String[] options = {"Suma elementow", "Srednia elementow", "Wartosc max i min"};
 
-        list = new JList<String>(options);
+        ListModel<String> listModel = new ListModel<>(options);
+
+        list = new JList<String>(listModel);
 
         list.setCellRenderer(new DefaultListCellRenderer(){
-
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
@@ -103,7 +112,6 @@ public class BottomPanel extends JPanel {
         list.setBorder(border);
         list.setBackground(new Color(192,192,192));
 
-
         //Button
         operationBtn = Utils.createJButton(
                 "Wybierz operacje",
@@ -115,16 +123,16 @@ public class BottomPanel extends JPanel {
 
                     switch (chosenOperation) {
                         case "Suma elementow" -> {
-                            double sum = mainPanel.topPanel.getTable().getTableElementsSum();
+                            double sum = mainPanel.topPanel.getTable().model.getTableElementsSum();
                             showDataInTextArea("Suma: " + sum);
                         }
                         case "Srednia elementow" -> {
-                            double average = mainPanel.topPanel.getTable().getTableElementsAverage();
+                            double average = mainPanel.topPanel.getTable().model.getTableElementsAverage();
                             showDataInTextArea("Srednia: " + average);
                         }
                         case "Wartosc max i min" -> {
-                            double min = mainPanel.topPanel.getTable().getTableMinElement();
-                            double max = mainPanel.topPanel.getTable().getTableMaxElement();
+                            double min = mainPanel.topPanel.getTable().model.getTableMinElement();
+                            double max = mainPanel.topPanel.getTable().model.getTableMaxElement();
                             showDataInTextArea("Min = " + min + " Max = " + max);
                         }
                     }
@@ -133,13 +141,38 @@ public class BottomPanel extends JPanel {
                 null,
                 "/operation.png"
         );
-
         operationBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        panel.add(Box.createRigidArea(new Dimension(0,20)));
-        panel.add(operationBtn);
-        panel.add(Box.createRigidArea(new Dimension(0,15)));
+
+        //CalendarCombo
+        calendar = new JCalendarCombo();
+        calendar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        calendar.setPreferredSize(new Dimension(150, 80));
+        calendar.setMaximumSize(calendar.getPreferredSize());
+
+
+        DefaultListCellRenderer renderer = new DefaultListCellRenderer();
+        renderer.setHorizontalAlignment(JLabel.RIGHT);
+
+        calendar.setRenderer(renderer);
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        calendar.setDateFormat(dateFormat);
+
+        calendar.addDateListener(dateEvent -> {
+            Date date = calendar.getDate();
+            String formattedDate = dateFormat.format(date);
+
+            showDataInTextArea("Wybrana data   " + formattedDate);
+        });
+
+
+        panel.add(Box.createRigidArea(new Dimension(0,40)));
         panel.add(list);
+        panel.add(Box.createRigidArea(new Dimension(0,15)));
+        panel.add(operationBtn);
+        panel.add(Box.createRigidArea(new Dimension(0,50)));
+        panel.add(calendar);
 
         panel.setBorder(BorderFactory.createEmptyBorder(0,20,0,20));
         panel.setBackground(new Color(255,229,204));

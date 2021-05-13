@@ -17,14 +17,17 @@ public class FileManager {
 
     private File loadedFile;
 
-
     public FileManager(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
     }
 
     //zapisywanie jako, jesli zaden plik zapisu nie byl wybrany
     public boolean saveAs(JTable table) {
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("txt", "txt", "TXT");
+
         JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(filter);
+
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
         int response = fileChooser.showSaveDialog(null);
@@ -33,8 +36,8 @@ public class FileManager {
             currentFile = fileChooser.getSelectedFile();
 
             if (!currentFile.getName().toLowerCase().endsWith(".txt")) {
-                JOptionPane.showMessageDialog(mainWindow.getFrame(), "Zapis mozliwy tylko do pliku .txt!");
-                currentFile = null;
+                String filePath = currentFile.getAbsolutePath();
+                currentFile = new File(filePath + ".txt");
             }
 
             return save(table);
@@ -42,7 +45,6 @@ public class FileManager {
 
         return false;
     }
-
 
     //zapisywanie do wybranego wczesniej pliku
     public boolean save(JTable table) {
@@ -65,16 +67,9 @@ public class FileManager {
         } catch (IOException e) {
             e.printStackTrace();
 
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
             return false;
-
-        } finally {
+        }
+        finally {
             if (writer != null) {
                 try {
                     writer.close();
@@ -86,7 +81,6 @@ public class FileManager {
 
         return true;
     }
-
 
 
     public boolean load(JTable table) {
@@ -112,6 +106,12 @@ public class FileManager {
     }
 
     private boolean loadFromFile(JTable table, File file){
+
+        if(!good(table, file)){
+            JOptionPane.showMessageDialog(mainWindow.getFrame(), "Bledne dane w pliku do odczytu");
+            return load(table);
+        }
+
         BufferedReader reader = null;
 
         try {
@@ -127,10 +127,6 @@ public class FileManager {
             while ((line = reader.readLine()) != null) {
                 String[] elements = line.trim().split(" ");
 
-                if(elements.length < table.getColumnCount()){
-                    return false;
-                }
-
                 for (int column = 0; column < table.getColumnCount(); column++) {
                     double doubleValue = Double.parseDouble(elements[column]);
 
@@ -144,29 +140,13 @@ public class FileManager {
                 row++;
             }
 
-            if (row != table.getRowCount()) {
-                JOptionPane.showMessageDialog(mainWindow.getFrame(), "Bledne dane w pliku do odczytu");
-                return false;
-            }
-
             mainWindow.getMainPanel().tableEditManager.push(editInfo);
 
         } catch (Exception e) {
             e.printStackTrace();
-
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-
-            JOptionPane.showMessageDialog(mainWindow.getFrame(), "Bledne dane w pliku do odczytu");
-
             return false;
-
-        } finally {
+        }
+        finally {
             if (reader != null) {
                 try {
                     reader.close();
@@ -175,6 +155,59 @@ public class FileManager {
                 }
             }
         }
+        return true;
+    }
+
+    private boolean good(JTable table, File file){
+        int rowCount = table.getRowCount();
+        int columnCount = table.getColumnCount();
+
+        BufferedReader reader = null;
+
+        try{
+            reader = new BufferedReader(new FileReader(file));
+
+            String line;
+
+            int row = 0;
+
+            while((line = reader.readLine()) != null){
+                String[] elements = line.trim().split(" ");
+
+                if(elements.length != columnCount){
+                    return false;
+                }
+
+                for(String element : elements){
+                    double doubleValue = Double.parseDouble(element);
+                }
+
+                row++;
+
+                if(row > rowCount){
+                    return false;
+                }
+            }
+
+            if(row != rowCount){
+                return false;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            return false;
+        }
+        finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
         return true;
     }
 

@@ -11,26 +11,14 @@ public class Table extends JPanel{
 
     public final JTable jtable;
 
+    public final TableModel model;
+
     public Table(){
         this.setLayout(new BorderLayout());
 
-        //creating model
-        DefaultTableModel model = new DefaultTableModel() {
-            final String[] headers = new String[]{"1", "2", "3", "4", "5"};
+        final String[] headers = new String[]{"1", "2", "3", "4", "5"};
 
-            @Override
-            public String getColumnName(int index) {
-                return headers[index];
-            }
-
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        model.setColumnCount(5);
-        model.setRowCount(5);
+        model = new TableModel(5,5, headers);
 
         //creating table
         jtable = new JTable(model);
@@ -38,7 +26,7 @@ public class Table extends JPanel{
         jtable.setGridColor(Color.BLACK);
         jtable.setBackground(new Color(255,229,204));
 
-        jtable.setRowHeight(35);
+        jtable.setRowHeight(40);
 
         jtable.getTableHeader().setReorderingAllowed(false);
         jtable.getTableHeader().setBackground(new Color(204,255,204));
@@ -50,9 +38,6 @@ public class Table extends JPanel{
         jtable.setColumnSelectionAllowed(false);
         jtable.setRowSelectionAllowed(false);
         jtable.setCellSelectionEnabled(true);
-
-        jtable.changeSelection(0,0,false,false);
-
 
         //setting renderer for cells
         DefaultTableCellRenderer renderer = new DefaultTableCellRenderer(){
@@ -76,6 +61,8 @@ public class Table extends JPanel{
 
         jtable.setDefaultRenderer(Object.class, renderer);
 
+        jtable.changeSelection(0,0,false,false);
+
         //adding table to the scroll pane
         JScrollPane tableScrollPane = new JScrollPane();
         tableScrollPane.setViewportView(jtable);
@@ -94,57 +81,10 @@ public class Table extends JPanel{
         }
 
         this.setBackground(new Color(255,229,204));
-
         this.add(tableScrollPane, BorderLayout.CENTER);
     }
 
 
-    public double getTableElementsSum(){
-        double sum = 0;
 
-        for(int i = 0 ; i < jtable.getRowCount() ; i++){
-            for(int j = 0 ; j < jtable.getColumnCount() ; j++){
-                sum += (Double.parseDouble((String) jtable.getValueAt(i,j)));
-            }
-        }
-
-        return sum;
-    }
-
-    public double getTableElementsAverage(){
-        double numberOfElements = jtable.getColumnCount() * jtable.getColumnCount();
-
-        return  getTableElementsSum() /  numberOfElements;
-    }
-
-    public double getTableMinElement(){
-        double min = (Double.parseDouble((String) jtable.getValueAt(0,0)));
-
-        for(int i = 0 ; i < jtable.getRowCount() ; i++){
-            for(int j = 0 ; j < jtable.getColumnCount() ; j++){
-                double value = (Double.parseDouble((String) jtable.getValueAt(i,j)));
-
-                if(min > value){
-                    min = value;
-                }
-            }
-        }
-        return min;
-    }
-
-    public double getTableMaxElement(){
-        double max = (Double.parseDouble((String) jtable.getValueAt(0,0)));
-
-        for(int i = 0 ; i < jtable.getRowCount() ; i++){
-            for(int j = 0 ; j < jtable.getColumnCount() ; j++){
-                double value = (Double.parseDouble((String) jtable.getValueAt(i,j)));
-
-                if(max < value){
-                    max = value;
-                }
-            }
-        }
-        return max;
-    }
 
 }

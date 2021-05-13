@@ -6,6 +6,7 @@ import app.mainWindow.mainPanel.MainPanel;
 import utils.Utils;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
 
 
 public class MainToolBar extends JPanel {
@@ -13,7 +14,7 @@ public class MainToolBar extends JPanel {
     private JToolBar toolBar;
 
     //buttons for toolBar
-    private JButton exitBtn, authorBtn, helpBtn, undoBtn, redoBtn, sumBtn, averageBtn, min_maxBtn;
+    private JButton exitBtn, authorBtn, helpBtn, undoBtn, redoBtn, occurenciesBtn, sumBtn, averageBtn, min_maxBtn, histogramBtn;
 
 
     private final MainWindow mainWindow;
@@ -96,10 +97,27 @@ public class MainToolBar extends JPanel {
                 "/redo-arrow.png"
         );
 
+        occurenciesBtn = Utils.createJButton(
+                null,
+                e -> {
+                    StringBuilder output = new StringBuilder();
+                    Map<Object, Integer> map = mainPanel.topPanel.getTable().model.getOccurrences();
+
+                    for(Map.Entry<Object, Integer> entry : map.entrySet()){
+                        output.append(String.format("%s wystepuje %d %s", entry.getKey(), entry.getValue(), entry.getValue().equals(1) ? " raz.   " : " razy.   "));
+                    }
+
+                    mainPanel.bottomPanel.showDataInTextArea(output.toString());
+                },
+                false,
+                null,
+                "/counting.png"
+        );
+
         sumBtn = Utils.createJButton(
                 null,
                 e -> {
-                    double sum = mainPanel.topPanel.getTable().getTableElementsSum();
+                    double sum = mainPanel.topPanel.getTable().model.getTableElementsSum();
                     mainPanel.bottomPanel.showDataInTextArea("Suma: " + sum);
                 },
                 false,
@@ -110,7 +128,7 @@ public class MainToolBar extends JPanel {
         averageBtn = Utils.createJButton(
                 null,
                 e -> {
-                    double average = mainPanel.topPanel.getTable().getTableElementsAverage();
+                    double average = mainPanel.topPanel.getTable().model.getTableElementsAverage();
                     mainPanel.bottomPanel.showDataInTextArea("Srednia: " + average);
                 },
                 false,
@@ -121,14 +139,23 @@ public class MainToolBar extends JPanel {
         min_maxBtn = Utils.createJButton(
                 null,
                 e -> {
-                    double min = mainPanel.topPanel.getTable().getTableMinElement();
-                    double max = mainPanel.topPanel.getTable().getTableMaxElement();
+                    double min = mainPanel.topPanel.getTable().model.getTableMinElement();
+                    double max = mainPanel.topPanel.getTable().model.getTableMaxElement();
                     mainPanel.bottomPanel.showDataInTextArea("Min = " + min + " Max = " + max);
                 },
                 false,
                 null,
                 "/maxmin.png"
         );
+
+        histogramBtn = Utils.createJButton(
+                null,
+                e -> mainWindow.createHistogram(),
+                false,
+                null,
+                "/graph.png"
+        );
+
         exitBtn.setBackground(Color.LIGHT_GRAY);
         authorBtn.setBackground(Color.LIGHT_GRAY);
         helpBtn.setBackground(Color.LIGHT_GRAY);
@@ -137,7 +164,8 @@ public class MainToolBar extends JPanel {
         min_maxBtn.setBackground(Color.LIGHT_GRAY);
         undoBtn.setBackground(Color.LIGHT_GRAY);
         redoBtn.setBackground(Color.LIGHT_GRAY);
-
+        occurenciesBtn.setBackground(Color.LIGHT_GRAY);
+        histogramBtn.setBackground(Color.LIGHT_GRAY);
 
 
         toolBar.add(exitBtn);
@@ -146,12 +174,12 @@ public class MainToolBar extends JPanel {
         toolBar.addSeparator(new Dimension(50,0));
         toolBar.add(undoBtn);
         toolBar.add(redoBtn);
+        toolBar.add(occurenciesBtn);
         toolBar.addSeparator(new Dimension(50,0));
         toolBar.add(sumBtn);
         toolBar.add(averageBtn);
         toolBar.add(min_maxBtn);
+        toolBar.addSeparator(new Dimension(50,0));
+        toolBar.add(histogramBtn);
     }
-
-
-
 }

@@ -2,8 +2,15 @@ package app.mainWindow;
 
 import app.mainWindow.mainPanel.MainPanel;
 import app.mainWindow.menu.MainMenu;
+import app.mainWindow.navigationBar.NavigationBar;
 import app.mainWindow.toolBar.MainToolBar;
+import com.l2fprod.common.swing.JTipOfTheDay;
+
+import com.l2fprod.common.swing.tips.DefaultTip;
+import com.l2fprod.common.swing.tips.DefaultTipModel;
+import graph.Histogram;
 import graphics.IconLoader;
+import org.jfree.chart.ChartPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,12 +29,18 @@ public class MainWindow {
 
     private MainPanel centrePanel;
 
+    private Histogram histogram;
+    private JDialog chartDialog;
+
+    private JTipOfTheDay tipOfTheDay;
+
+
     public MainWindow(int width, int height, String title){
+
         //creating frame
         frame = new JFrame();
 
         frame.setTitle(title);
-
 
         //setting window size
         Dimension frameSize = new Dimension(width, height);
@@ -53,7 +66,7 @@ public class MainWindow {
         });
 
 
-        //main panel
+        //main content
         mainContent = (JPanel) frame.getContentPane();
         mainContent.setLayout(new BorderLayout());
         mainContent.setBackground(Color.GRAY);
@@ -62,9 +75,26 @@ public class MainWindow {
         createMainPanel();
         createToolBar();
 
+        //creating navigation panel
+        createNavigationBar();
+
         //menu
         MainMenu menu = new MainMenu(this);
         frame.setJMenuBar(menu);
+
+        //tip of the day
+        setTipOfTheDay();
+    }
+
+    private void setTipOfTheDay(){
+        DefaultTipModel tipModel = new DefaultTipModel();
+
+        tipModel.add(new DefaultTip("Tip 1", " Learn By Doing, Practicing and Not Just Reading"));
+        tipModel.add(new DefaultTip("Tip 2", "“The code works” isn't where you stop; it's where you start"));
+
+        tipOfTheDay = new JTipOfTheDay(tipModel);
+
+        tipOfTheDay.showDialog(frame);
     }
 
     private void createToolBar(){
@@ -79,6 +109,27 @@ public class MainWindow {
         mainContent.add(centrePanel, BorderLayout.CENTER);
     }
 
+    private void createNavigationBar(){
+        NavigationBar navigationBar = new NavigationBar(this);
+
+        mainContent.add(navigationBar, BorderLayout.WEST);
+    }
+
+    public void createHistogram(){
+        histogram = new Histogram(centrePanel.topPanel.getTable().model.toDoubleArray());
+
+        ChartPanel chartPanel = new ChartPanel(histogram.getHistogramChart());
+
+        chartDialog = new JDialog();
+        chartDialog.add(chartPanel);
+        chartDialog.pack();
+
+        chartDialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+        chartDialog.setModal(true);
+
+        chartDialog.setVisible(true);
+    }
 
     public void disposeAndExit(){
         int value = JOptionPane.showOptionDialog(
@@ -101,7 +152,7 @@ public class MainWindow {
 
     public void showAuthor(){
         JOptionPane.showMessageDialog(frame,
-                "Jakub Swistak \nPoczta: kuba175174@gmail.com",
+                "Wersja GUI: 1.1\nAutor:\nJakub Swistak\nkuba175174@gmail.com\nCopyright \u00a9 by JS 2021",
                 "Autor",
                 JOptionPane.INFORMATION_MESSAGE,
                 IconLoader.loadIcon("/logo.png")
@@ -118,6 +169,7 @@ public class MainWindow {
             e.printStackTrace();
         }
     }
+
 
     public JFrame getFrame(){
         return frame;

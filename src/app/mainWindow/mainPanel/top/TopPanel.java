@@ -4,12 +4,22 @@ import app.mainWindow.MainWindow;
 import app.mainWindow.edit.TableEditInfo;
 import app.mainWindow.mainPanel.MainPanel;
 import app.mainWindow.mainPanel.table.Table;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.statistics.HistogramDataset;
+import org.jfree.data.xy.DefaultIntervalXYDataset;
+import org.jfree.data.xy.IntervalXYDataset;
 import utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TopPanel extends JPanel {
 
@@ -55,6 +65,7 @@ public class TopPanel extends JPanel {
         table.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.add(table, BorderLayout.CENTER);
 
+
         JPanel north = createNorthPanel();
 
         this.add(north, BorderLayout.NORTH);
@@ -66,7 +77,7 @@ public class TopPanel extends JPanel {
 
     private JPanel createNorthPanel() {
         JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        northPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        northPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 0));
 
         //------
         northPanel.add(new JLabel("Wprowadz liczbe"));
@@ -131,11 +142,14 @@ public class TopPanel extends JPanel {
 
                         String value = numberField.getText();
 
+                        if(value.endsWith("d") || value.endsWith("D")){
+                            throw new IllegalAccessException();
+                        }
+
                         int[] selectedRows = table.jtable.getSelectedRows();
                         int[] selectedColumns = table.jtable.getSelectedColumns();
 
                         TableEditInfo[] editInfo = new TableEditInfo[selectedRows.length * selectedColumns.length];
-
 
                         int n = 0;
                         for (int selectedRow : selectedRows) {
@@ -150,8 +164,13 @@ public class TopPanel extends JPanel {
                         }
 
                         mainPanel.tableEditManager.push(editInfo);
+
+                        numberField.setBackground(Color.WHITE);
+
                     } catch (Exception exception) {
                         exception.printStackTrace();
+
+                        numberField.setBackground(Color.YELLOW);
 
                         JOptionPane.showMessageDialog(
                                 this,
